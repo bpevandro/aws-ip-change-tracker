@@ -1,0 +1,473 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    
+  <meta charset="UTF-8">
+  <meta name="author" content="Evandro Baginski">
+
+  <title>AWS IP Change Tracker</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+  integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" 
+  crossorigin="anonymous">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+ 
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="index.html">AWS IP Tracker</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="index.html">Compare</a></li>
+                <li><a href="findservice.html">Search by IP</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>    
+
+  <!--<div id="app" style="background-color:rgb(154, 189, 201); width: 50%">-->
+  <div id="app">
+        
+
+    <div class="form">
+        
+        <div class="formitself" v-bind:class="[{ formitself2: clicked }]">
+            <h4>Select below the service for which you want to see what's changed</h4>
+            <h5 style="width: 500px; margin-bottom: 3%; font-weight:350;">To see what the current IPs are for a given service, leave <b>Date 1</b> blank and select most recent date for <b>Date 2</b>.</h5>
+            <form>
+            
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                class="service" id="amazon"  value="amazon"> Amazon<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                class="service" id="amazon_appflow"  value="amazon_appflow"> Amazon AppFlow<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="amazon_connect"  value="amazon_connect"> Amazon Connect<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="api_gateway"  value="api_gateway"> API Gateway<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="chime_meetings"  value="chime_meetings"> Chime Meetings<br>
+                
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="chime_voiceconnector"  value="chime_voiceconnector"> Chime Voice Connector<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="cloud9"  value="cloud9"> Cloud9<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="cloudfront" value="cloudfront"> CloudFront<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="codebuild"  value="codebuild"> CodeBuild<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="dynamodb"  value="dynamodb"> DynamoDB<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="ec2"  value="ec2"> EC2<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="ec2_instance_connect"  value="ec2_instance_connect"> EC2 Instance Connect<br>
+                
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="globalaccelerator"  value="globalaccelerator"> Global Accelerator<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="route53"  value="route53"> Route53<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="route53_healthchecks"  value="route53_healthchecks"> Route53 Health Checks<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="s3" value="s3"> S3<br>
+
+                <input type="radio" v-model="picked" v-on:click="isSelected()" 
+                name="service" id="workspaces_gateways" value="workspaces_gateways"> Workspaces Gateways<br>
+
+                <!-- <span v-show="selected">You're about to query for {{ picked }}'s IP addresses</span> -->
+            </form>
+    
+
+            <br>
+            
+            <h4>Select the dates below</h4>
+            <h5 style="width: 400px; font-weight:350;">The dates available correspond to the dates in which there were changes to AWS's ip ranges.</h5>
+            <h5 style="width: 400px; color: rgb(223, 164, 3); font-weight:350;">Make sure you select the dates from the datepickers and that Date 2 is greater than Date 1.</h5>
+            <h5 style="width: 400px; color: rgb(223, 164, 3); font-weight:350;">If <b>All</b> is selected, two dates must be provided.</h5>
+            
+            <form class="row">
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <input v-model="date1" type="text" class="datepicker1" placeholder="Date 1" size="20">
+                    </div>
+                </div>
+
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <input v-model="date2" type="text" class="datepicker2" placeholder="Date 2" size="20" required>
+                    </div>
+                </div>
+            </form>
+        
+            <button v-on:click="buttonClicked()" id="fetchButton" class="compare-button">Compare</button>        
+            <div id="loading"></div>
+            <div id="error"> Invalid date(s) selected.</div>
+            
+        </div>
+    </div>
+    <!-- End of form div-->
+    
+    <div class="result-table" v-if="clicked" v-cloak>
+   
+        <h4 style="color: rgb(214, 212, 212); margin-bottom: 3%;">List of IP's added/removed to/from {{picked_saved}} since the first date selected</h4>
+        
+        <div class="tabButtons">
+            <button v-on:click="buttonv4Clicked()">IPv4</button>
+            <button v-on:click="buttonv6Clicked()">IPv6</button>
+        </div>
+        
+        <div class="table-wrapper-scroll-y" style="border-bottom: 1px solid rgb(214, 212, 212);"> 
+            
+            <!-- This table is only shown IF the button's been clicked and the jQuery call was successful-->
+            <div class="bootstrap-table">
+                <div class="fixed-table-container">
+                    <table v-if="only_date_2" id="ips-table table" class="table" data-search="true" data-toggle="table">
+                        <thead>
+                            <tr>
+                                <th data-sortable="true">{{date2_saved}}</th>    
+                                <th data-sortable="true">Region</th>
+                            </tr>
+                        </thead>
+    
+                        <tbody>                      
+                            <td id="ip2-column">
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="ips2 in ips2">{{ips2}}</li>                                         
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="ips2 in ipsv6_2">{{ips2}}</li>                                         
+                                </ul>
+                            </td>
+                            <td>
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="regions in regions">{{regions}}</li>
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="regions in regionsv6">{{regions}}</li>
+                                </ul>
+                            </td>                
+                        </tbody>
+                    </table>
+
+                    <table style="border-collapse: collapse !important;" v-else-if="service_all_picked" id="ips-table table" class="table table-all" data-search="true" data-toggle="table">
+                        <thead>
+                            <tr>
+                                <th data-sortable="true">Service</th>    
+                                <th data-sortable="true">Added</th>
+                                <th data-sortable="true">Region</th>
+                                <th data-sortable="true">Removed</th>
+                                <th data-sortable="true">Region</th>
+                            </tr>
+                        </thead>
+    
+                        <tbody>
+                            <tr v-for="value, key in response_all">                      
+                                <td>
+                                    <ul v-if="ipv4" class="list-unstyled">
+                                        <li>{{key}}</li>                                         
+                                    </ul>
+                                    <ul v-else="ipv4" class="list-unstyled">
+                                        <li>{{key}}</li>                                         
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul v-if="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Added">{{item}}</li>                                         
+                                    </ul>
+                                    <ul v-else="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Added_v6">{{item}}</li>                                         
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul v-if="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Regions">{{item}}</li>                                         
+                                    </ul>
+                                    <ul v-else="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Regions_v6">{{item}}</li>                                         
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul v-if="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Removed">{{item}}</li>                                         
+                                    </ul>
+                                    <ul v-else="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Removed_v6">{{item}}</li>                                         
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul v-if="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Regions_Removed">{{item}}</li>                                         
+                                    </ul>
+                                    <ul v-else="ipv4" class="list-unstyled">
+                                        <li v-for="item in value.Regions_Removed_v6">{{item}}</li>                                         
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table v-else id="ips-table table" class="table" data-search="true" data-toggle="table">
+                        <thead>
+                            <tr>
+                                <!-- <th scope="col">Service</th> -->
+                                <th scope="col">{{date1_saved}}</th> 
+                                <th data-sortable="true">{{date2_saved}}</th>
+                                <th data-sortable="true">Added</th>        
+                                <th data-sortable="true">Region</th>
+                                <th data-sortable="true">Removed</th>
+                                <th data-sortable="true">Region</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>                 
+                            <!-- <td>{{picked_saved}}</td> -->
+                            <td id="ip1-column">
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="ips1 in ips1">{{ips1}}</li>                               
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="ips1 in ipsv6_1">{{ips1}}</li>                               
+                                </ul>
+                            </td> 
+                            <td id="ip2-column">
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="ips2 in ips2">{{ips2}}</li>                                         
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="ips2 in ipsv6_2">{{ips2}}</li>                                         
+                                </ul>
+                            </td>
+                            <td>
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="ips in diffips">{{ips}}</li>
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="ips in diffipsv6">{{ips}}</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="regions in regions">{{regions}}</li>
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="regions in regionsv6">{{regions}}</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="ips in diffips_removed">{{ips}}</li>
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="ips in diffipsv6_removed">{{ips}}</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul v-if="ipv4" class="list-unstyled">
+                                    <li v-for="regions in regions_removed">{{regions}}</li>
+                                </ul>
+                                <ul v-else="ipv4" class="list-unstyled">
+                                    <li v-for="regions in regionsv6_removed">{{regions}}</li>
+                                </ul>
+                            </td>
+                            
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="js/vue.min.js"></script>
+  <script src="js/scripts.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+</body>
+  
+  <script>
+
+    var app = new Vue({
+      el: '#app',
+      data: {
+        clicked: false,
+        ipv4: true,
+        dates_dpdown: [],
+        most_recent_date: '',
+        only_date_2: false,
+        service_all_picked: false,  
+        date1: '',
+        date1_saved: '',
+        date2: '',
+        date2_saved: '',  
+        picked: 'amazon',
+        picked_saved: '',
+        selected: false,
+        diffips: '',
+        diffips_removed: '',
+        diffipsv6: '',
+        diffipsv6_removed: '',
+        ips1: '',
+        ipsv6_1: '',
+        ips2: '',
+        ipsv6_2: '',
+        regions: '',
+        regions_removed: '',
+        regionsv6: '',
+        regionsv6_removed: '',
+        response_all: ''
+        
+      },
+      methods: {
+          isSelected: function(){
+              this.selected = true               
+          },
+
+          buttonClicked: function(){
+            if (app.picked == 'all' && (app.date1 == '' || app.date2 == '') ){
+                document.getElementById("error").style.display = "inline";
+            }
+            else if ((app.dates_dpdown.indexOf(app.date2) >= 0 && (app.date1 == '' || app.dates_dpdown.indexOf(app.date1)) >= 0) && (Date.parse(app.date2) > Date.parse(app.date1) || app.date1 == '')) {                    
+                
+                document.getElementById("error").style.display = "none";
+                $('#loading').html('<img id="loader-img" alt="" src="loading-animated-png-5.gif"/>');
+                $.ajax({
+                    type: "POST",
+                    url: 'https://awsiptracker.evandrobaginski.com/v1',
+                    data: '{"service": "'+this.picked+'", "date1": "'+this.date1+'", "date2": "'+this.date2+'"}',
+                    crossDomain: true,
+                    dataType: 'json',
+                    // This function is called if the call above is successful
+                    success: function(response){
+                        $('#loading').html('');
+                        setQueryStringParameter("service", app.picked, "date1", app.date1, "date2", app.date2);
+                        if(app.picked == 'all'){
+                            app.service_all_picked = true;
+                            successFunctionServiceAll(response);
+                        }
+                        else if(app.date1 == ''){
+                            app.only_date_2 = true;
+                            successFunction(response);
+                        }
+                        else {
+                            app.only_date_2 = false;
+                            app.service_all_picked = false;
+                            successFunction(response);
+                        }
+                    },
+                    error: function(response){
+                        $('#loading').html('');           
+                    }        
+                });  
+            }
+            else {
+                document.getElementById("error").style.display = "inline";
+            }                  
+          },
+
+          buttonClickedOnLoad: function(){
+            if (app.picked == 'all' && (app.date1 == '' || app.date2 == '') ){
+                document.getElementById("error").style.display = "inline";
+            }  
+            else {
+                document.getElementById("error").style.display = "none";
+                $('#loading').html('<img id="loader-img" alt="" src="loading-animated-png-5.gif"/>');
+                $.ajax({
+                    type: "POST",
+                    url: 'https://awsiptracker.evandrobaginski.com/v1',
+                    data: '{"service": "'+this.picked+'", "date1": "'+this.date1+'", "date2": "'+this.date2+'"}',
+                    crossDomain: true,
+                    dataType: 'json',
+                    // This function is called if the call above is successful
+                    success: function(response){
+                        $('#loading').html('');
+                        setQueryStringParameter("service", app.picked, "date1", app.date1, "date2", app.date2);
+                        if(app.picked == 'all'){
+                            app.service_all_picked = true;
+                            successFunctionServiceAll(response);
+                        }
+                        else if(app.date1 == ''){
+                            app.only_date_2 = true;
+                            successFunction(response);
+                        }
+                        else {
+                            app.only_date_2 = false;
+                            app.service_all_picked = false;
+                            successFunction(response);
+                        }
+                    },
+                    error: function(response){
+                        $('#loading').html('');           
+                    }        
+                }); 
+            } 
+          },
+
+          buttonv4Clicked: function(){
+                this.ipv4 = true 
+          },
+
+          buttonv6Clicked: function(){
+                this.ipv4 = false 
+          }         
+      }
+    });
+
+    $( function() {
+
+        // This function makes so that only the dates returned by the GET API(app.dates_dpdown) 
+        // to be enabled on the datepicker
+        function enableAllTheseDays(date){
+            var sdate = $.datepicker.formatDate( 'yy-mm-dd', date)
+
+            if($.inArray(sdate, app.dates_dpdown) != -1){
+                return [ true];
+            }
+            return [ false];
+        }
+
+        $( ".datepicker1" ).datepicker({
+            dateFormat: "yy-mm-dd",
+            beforeShowDay: enableAllTheseDays,
+            onSelect: function(){
+                app.date1 = $(this).val();                
+            }
+        });
+
+        $( ".datepicker2" ).datepicker({
+            dateFormat: "yy-mm-dd",
+            beforeShowDay: enableAllTheseDays, 
+            onSelect: function(){
+                app.date2 = $(this).val();
+            }
+        });    
+    });
+
+  </script>
+
+
+
+
+</html>

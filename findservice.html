@@ -1,0 +1,210 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="Evandro Baginski">
+
+  <title>AWS IP Change Tracker</title>
+  
+  <link rel="stylesheet" href="css/style.css" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+  integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" 
+  crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" 
+  integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" 
+  crossorigin="anonymous">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="index.html">AWS IP Tracker</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="index.html">Compare</a></li>
+                <li class="active"><a href="findservice.html">Search by IP</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>    
+
+  <!--<div id="app" style="background-color:rgb(154, 189, 201); width: 50%">-->
+  <div id="app">
+        
+
+    <div class="formfindservice" v-bind:class="[{ formitself2: clicked }]">
+            
+        <h4 style="margin-bottom: 5%;">Enter the IP to find the service it's associated with</h4>
+        <h5 style="width: 400px;">You can enter multiple IP addresses at a time,</h5><h5 style="color: red">  each on a new line, without commas or subnet prefix length</h5>
+        
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="form-group">
+
+                    <textarea id="input" rows="2" cols="25" v-model="ip_address" size="20"></textarea>
+
+                </div>
+            </div>
+        </div>
+
+        <button v-on:click="buttonClicked()" id="fetchButton" class="compare-button">Find</button>
+
+        <div id="loading"></div>
+
+        
+    </div>
+    <!-- End of form div-->
+    
+    <div class="result-table" v-if="clicked" v-cloak>
+
+        <h4 style="color: rgb(214, 212, 212); margin-bottom: 3%;">Information on the IP addresses provided</h4>
+        <div class="table-wrapper-scroll-y" style="border-bottom: 1px solid rgb(214, 212, 212);"> 
+            <table id="ips-table">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgb(214, 212, 212);">
+                            <th scope="col">IP</th>
+                            <th scope="col">Service</th>
+                            <th scope="col">Region</th> 
+                            <th scope="col">CIDR</th>
+                        </tr>
+                    </thead>
+    
+                    <tbody>
+                        <tr class="results-row">
+                           
+                            <td>
+                                <ul v-if="!error===false" class="list-unstyled">
+                                    <li>{{error_msg}}</li>                               
+                                </ul>
+                                <ul class="list-unstyled">
+                                    <li v-for="ip in ip_addresses">{{ip}}</li>                               
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-unstyled">
+                                    <li v-for="service in service">{{service}}</li>                               
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-unstyled">
+                                    <li v-for="region in region">{{region}}</li>                               
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-unstyled">
+                                    <li v-for="cidr in cidr">{{cidr}}</li>                               
+                                </ul>
+                            </td>
+                        </tr>       
+                    </tbody>
+            </table>
+        </div>
+
+    </div>
+    
+  </div>
+
+</body>
+  
+  <script>
+
+    function trimIPs(){
+        var lines = $('#input').val().split(/\n/);
+        var output = [];
+        var outputText = [];
+        for (var i = 0; i < lines.length; i++) {
+            // only push this line if it contains a non whitespace character.
+            if (/\S/.test(lines[i])) {
+                outputText.push('"' + $.trim(lines[i]) + '"');                             
+            }
+        }
+        output.push(outputText);
+        console.log
+        return output;
+    }
+
+    // If the jQuery call is success, set app.clicked to true so that the table is shown
+    function successFunction(response){
+        app.clicked = true,
+        app.error = false,
+        app.cidr = response['cidr']
+        app.region = response['region']
+        app.service = response['service']
+        app.ip_addresses = response['ip_addresses']
+    }  
+
+    function errorFunction(status, response){
+        if (status.status == 400){
+            app.error = true;
+        }
+        app.clicked = true,
+        app.cidr = '',
+        app.region = '',
+        app.service = '',
+        app.ip_addresses = ''
+
+    }
+
+    var app = new Vue({
+      el: '#app',
+      data: {
+        ip_address: '',
+        cidr: '',
+        region: '',
+        service: '',
+        ip_addresses: '',
+        error: false,
+        error_msg: 'Max number of lines exceeded. (Max 12)',
+        clicked: false
+      },
+      methods: {
+          
+          buttonClicked: function(){
+
+                $('#loading').html('<img id="loader-img" alt="" src="loading-animated-png-5.gif"/>');
+
+                var find_ips = trimIPs();
+
+                $.ajax({
+                type: "POST",
+                url: 'https://awsiptracker.evandrobaginski.com/v1/ip',
+                data: '{"ip_addresses":['+find_ips+']}',
+                crossDomain: true,
+                dataType: 'json',
+                cidr: '',
+                region: '',
+                service: '',
+                ip_addresses: '',
+                notFound: false,
+                // This function is called if the call above is successful
+                success: function(response){
+                    $('#loading').html('');
+                    
+                    successFunction(response);
+                },
+                error: function(status, response){
+                    $('#loading').html('');
+                    errorFunction(status, response);            
+                }        
+              });           
+          }   
+      }
+    });
+
+  </script>
+
+
+
+
+</html>

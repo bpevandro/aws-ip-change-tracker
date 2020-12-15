@@ -1,0 +1,100 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="Evandro Baginski">
+
+  <title>AWS IP Change Tracker</title>
+  
+  <link rel="stylesheet" href="css/style.css" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+  integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" 
+  crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" 
+  integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" 
+  crossorigin="anonymous">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="index.html">AWS IP Tracker</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="index.html">Compare</a></li>
+                <li><a href="findservice.html">Search by IP</a></li>
+                <li class="active"><a href="about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>    
+
+  <!--<div id="app" style="background-color:rgb(154, 189, 201); width: 50%">-->
+
+        
+    <div class="about">
+
+        <div class="about1">    
+            <h3 style="margin-bottom: 5%; text-align: center;">About</h3>
+            <p>AWS IP Tracker is a serverless app that consists of two tools, <span style="font-weight: bold;">Comparer</span> and <span style="font-weight: bold;">Find Service</span>. These tools are intended to help AWS users to better visualize what has changed at AWS when it comes to IP addresses and also know whether or not a single (or multiple) IP(s) belongs to AWS, and, if so, what the service and region they're associated with are.</p>
+            <p>If you have ever asked one or all of the below question, this app is definitely going to help you:</p>
+
+                <ul style="line-height: 1.8;">
+                    <li>Which IP addresses have been added to the Amazon organization since a given date?</li> 
+                    <li>Which IP addresses have been added to a specific service (e.g CloudFront) since a certain date?</li>
+                    <li>Can two specific dates be compared to see whether a range of IPs was present at that point in time?</li>
+                    <li>Do these IP addresses really belong to AWS so that I can allow them in my firewall?</li>                                  
+                </ul> 
+            <br>    
+            <p>Hope you like it!</p>
+            <p>Feedbacks are more than welcome, are needed! Feel free to reach me at <span style="font-style: italic;">bp_evandro@hotmail.com</span>.</p>
+            <p></p>
+            
+        </div>
+
+        <div class="about2">
+                
+                <h3 style="margin-bottom: 5%; text-align: center;">How to use the tools</h3>
+                <p>Both the tools are straight-forward. However, there are a couple of caveats that you should know, though. They are described below.</p><br>
+                <h4 style="margin-bottom: 2%; ">Comparer</h4>
+                <p>This tool allows users to search for historical IP ranges from AWS and compare them with another one from a different date. Example, John accessed the tool and saw that there was a new date available in the datepickers, which means AWS has released new changes to its IP addresses, which in turn triggered this app to go and fetch the newly released 'ip-ranges.json' (<i>https://ip-ranges.amazonaws.com/ip-ranges.json</i>) and store it as an available date be searched through (date becomes available in the datepicker). Now John wants to know exactly which IP address has been added and its service and region. However, since he doesn't know the service which the newly added IP is associated with yet, he selects 'AMAZON' as the service, the last but one date available for "Date 1", and the last date available for "Date2. He can then take the IP address(es) showed on the result table and query it against the "Find Service" tool to know the service and region it's associated with.</p>
+
+                <p>The order of the dates you select dictates how the difference is calculated. The formula is:</p>
+                <h5 style="margin-top: 2%; padding-left: 5%;">DIFF = IPS in date2 - IPS in date1</h3><br>
+                <p>Therefore, you should select the older date in the datepicker "Date 1" and the current(or more recent) one in the datepicker "Date 2", if you want to know if any IP has been <span style="font-weight: bold;">added</span> since Date 1.</p>
+                <p>However, if you want to know if an IP address has been <span style="font-weight: bold;">removed</span>, meaning that it was present in the older date, but not in the more recent one, select the more recent date in "Date 1", and the older one in "Date 2".</p>
+                <h4 style="margin-top: 5%; margin-bottom: 2%; ">Find Service</h4>
+                <p>You can enter one or multiple IP addresses at once, having in mind that you should put them <span style="font-weight: bold;">one on each line, without commas</span>.</p>
+                <p>Example:</p>
+
+                <p style="padding-left: 5%; text-align: left; margin-bottom: 20%;">13.33.54.46<br>
+                    13.33.54.47<br>
+                    13.33.54.48<br>
+                    13.33.54.49<br>
+                    52.218.16.194<br>
+                    13.33.54.50<br>
+                    13.33.54.51<br>
+                    13.33.54.52<br>
+                    52.218.16.195<br>
+                    13.33.54.53<br>
+                    13.33.54.54<br>
+                    52.218.16.196<br>
+                    52.218.16.197</p>
+
+
+        </div>
+    </div>
+
+
+</body>
+</html>
